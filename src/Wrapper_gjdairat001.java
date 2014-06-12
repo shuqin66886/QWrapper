@@ -9,6 +9,7 @@ import com.qunar.qfwrapper.interfaces.QunarCrawler;
 import com.qunar.qfwrapper.util.QFHttpClient;
 import com.qunar.qfwrapper.util.QFPostMethod;
 import com.travelco.rdf.infocenter.InfoCenter;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.httpclient.NameValuePair;
 
@@ -16,11 +17,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Wrapper_gjdairat001 implements QunarCrawler {
-    private static FlightSearchParam searchParam;
-    private static QFHttpClient httpClient;
 
     public static void main(String[] args) {
-        searchParam = new FlightSearchParam();
+        FlightSearchParam searchParam = new FlightSearchParam();
 //        searchParam.setDep("BEY");
 //        searchParam.setArr("ACC");
         searchParam.setDep("Paris-Orly (ORY)");
@@ -28,7 +27,6 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         searchParam.setDepDate("2014-07-10");
         searchParam.setTimeOut("60000");
         searchParam.setToken("");
-        httpClient = new QFHttpClient(searchParam, false);
 
         String html = new Wrapper_gjdairat001().getHtml(searchParam);      //得到最终结果
 
@@ -46,7 +44,9 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
     }
 
     public String getHtml(FlightSearchParam arg0) {                 //第一次跳转
+        QFHttpClient httpClient = new QFHttpClient(arg0, false);
         QFPostMethod postMethod = new QFPostMethod("http://www.royalairmaroc.com/int-en/ezjscore/call/");
+        postMethod.setRequestHeader("Connection", "close");
         try {
             NameValuePair[] data = {
                     new NameValuePair("language_code", "EN")
@@ -68,22 +68,25 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
             int status = httpClient.executeMethod(postMethod);
             String html = postMethod.getResponseBodyAsString();
 
-            String body = postInfo(html);       //第2次
+            String body = postInfo(arg0,html);       //第2次
             return postDateInfo(arg0,body);        //第3次
         } catch (Exception e) {
             return "Exception";
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
+                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
             }
         }
 
     }
 
-    public static String postInfo(String html) {                //第2次跳转
+    public static String postInfo(FlightSearchParam arg0,String html) {                //第2次跳转
         String url = StringUtils.substringBetween(html, "url&quot;:&quot;", "&quot;,&quot;EMBEDDED_TRANSACTION").replaceAll("\\\\", "");
         String ENC = StringUtils.substringBetween(html, "ENC&quot;:&quot;", "&quot;}");
+        QFHttpClient httpClient = new QFHttpClient(arg0, false);
         QFPostMethod postMethod = new QFPostMethod(url);
+        postMethod.setRequestHeader("Connection", "close");
         try {
             NameValuePair[] data = {
                     new NameValuePair("EMBEDDED_TRANSACTION", "FlexPricerAvailability")
@@ -101,13 +104,16 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
+                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
             }
         }
     }
 
     public static String postDateInfo(FlightSearchParam arg0,String body) {                      //第3次跳转
+        QFHttpClient httpClient = new QFHttpClient(arg0, false);
         String jsessionid = StringUtils.substringBetween(body, "FlexPricerAvailabilityDispatcherPui.action", "\" method=\"POST\" class=\"transparentForm\">");
         QFPostMethod postMethod = new QFPostMethod("https://www.royalairmaroc.e-retail.amadeus.com/plnext/5APHOneWay/FlexPricerAvailabilityDispatcherPui.action" + jsessionid);
+        postMethod.setRequestHeader("Connection", "close");
         try {
             NameValuePair[] data = {
 //                    new NameValuePair("B_LOCATION_1", arg0.getDep())
@@ -147,6 +153,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
+                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
             }
         }
     }
