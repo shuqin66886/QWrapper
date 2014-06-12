@@ -11,6 +11,7 @@ import com.qunar.qfwrapper.util.QFPostMethod;
 import com.travelco.rdf.infocenter.InfoCenter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.httpclient.NameValuePair;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -22,8 +23,10 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         searchParam = new FlightSearchParam();
         searchParam.setDep("BEY");
         searchParam.setArr("ACC");
+//        searchParam.setDep("Paris-Orly (ORY)");
+//        searchParam.setArr("Accra (ACC)");
         searchParam.setDepDate("2014-07-10");
-        searchParam.setTimeOut("100000");
+        searchParam.setTimeOut("60000");
         searchParam.setToken("");
         httpClient = new QFHttpClient(searchParam, false);
 
@@ -43,13 +46,15 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
     }
 
     public String getHtml(FlightSearchParam arg0) {                 //第一次跳转
+        QFPostMethod postMethod = new QFPostMethod("http://www.royalairmaroc.com/int-en/ezjscore/call/");
         try {
-            QFPostMethod postMethod = new QFPostMethod("http://www.royalairmaroc.com/int-en/ezjscore/call/");
             NameValuePair[] data = {
                     new NameValuePair("language_code", "EN")
                     , new NameValuePair("countryCode", "GB")
                     , new NameValuePair("depart", getCity(arg0.getDep()))
                     , new NameValuePair("arrivee", getCity(arg0.getArr()))
+//                    , new NameValuePair("depart", arg0.getDep())
+//                    , new NameValuePair("arrivee", arg0.getArr())
                     , new NameValuePair("date_depart", getDate(arg0.getDepDate()))
                     , new NameValuePair("type_classe", "RAMALL")
                     , new NameValuePair("radio-type-aller", "O")
@@ -64,17 +69,22 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
             String html = postMethod.getResponseBodyAsString();
 
             String body = postInfo(html);       //第2次
-            return postDateInfo(body);        //第3次
+            return postDateInfo(arg0,body);        //第3次
         } catch (Exception e) {
             return "Exception";
+        } finally {
+            if (postMethod != null) {
+                postMethod.releaseConnection();
+            }
         }
+
     }
 
     public static String postInfo(String html) {                //第2次跳转
+        String url = StringUtils.substringBetween(html, "url&quot;:&quot;", "&quot;,&quot;EMBEDDED_TRANSACTION").replaceAll("\\\\", "");
+        String ENC = StringUtils.substringBetween(html, "ENC&quot;:&quot;", "&quot;}");
+        QFPostMethod postMethod = new QFPostMethod(url);
         try {
-            String url = StringUtils.substringBetween(html, "url&quot;:&quot;", "&quot;,&quot;EMBEDDED_TRANSACTION").replaceAll("\\\\", "");
-            String ENC = StringUtils.substringBetween(html, "ENC&quot;:&quot;", "&quot;}");
-            QFPostMethod postMethod = new QFPostMethod(url);
             NameValuePair[] data = {
                     new NameValuePair("EMBEDDED_TRANSACTION", "FlexPricerAvailability")
                     , new NameValuePair("SITE", "BBDGBBDG")
@@ -88,20 +98,26 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
             return body;
         } catch (Exception e) {
             return "Exception";
+        } finally {
+            if (postMethod != null) {
+                postMethod.releaseConnection();
+            }
         }
     }
 
-    public static String postDateInfo(String body) {                      //第3次跳转
+    public static String postDateInfo(FlightSearchParam arg0,String body) {                      //第3次跳转
+        String jsessionid = StringUtils.substringBetween(body, "FlexPricerAvailabilityDispatcherPui.action", "\" method=\"POST\" class=\"transparentForm\">");
+        QFPostMethod postMethod = new QFPostMethod("https://www.royalairmaroc.e-retail.amadeus.com/plnext/5APHOneWay/FlexPricerAvailabilityDispatcherPui.action" + jsessionid);
         try {
-            String jsessionid = StringUtils.substringBetween(body, "FlexPricerAvailabilityDispatcherPui.action", "\" method=\"POST\" class=\"transparentForm\">");
-            QFPostMethod postMethod = new QFPostMethod("https://www.royalairmaroc.e-retail.amadeus.com/plnext/5APHOneWay/FlexPricerAvailabilityDispatcherPui.action" + jsessionid);
             NameValuePair[] data = {
-                    new NameValuePair("B_LOCATION_1", searchParam.getDep())
+                    new NameValuePair("B_LOCATION_1", arg0.getDep())
+                    , new NameValuePair("E_LOCATION_1", arg0.getArr())
+//                     new NameValuePair("B_LOCATION_1", arg0.getDep().substring(arg0.getDep().indexOf("(")+1,arg0.getDep().length()-1))
+//                    , new NameValuePair("E_LOCATION_1",arg0.getArr().substring(arg0.getArr().indexOf("(")+1,arg0.getArr().length()-1))
                     , new NameValuePair("DATE_RANGE_VALUE_2", "0")
                     , new NameValuePair("AIRLINE_2_1", "AT")
                     , new NameValuePair("DATE_RANGE_VALUE_1", "0")
                     , new NameValuePair("REAL_ARRANGE_BY", "N")
-                    , new NameValuePair("E_LOCATION_1", searchParam.getArr())
                     , new NameValuePair("ENCT", "1")
                     , new NameValuePair("TRAVELLER_TYPE_1", "ADT")
                     , new NameValuePair("SITE", "BBDGBBDG")
@@ -111,7 +127,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
                     , new NameValuePair("DATE_RANGE_QUALIFIER_1", "C")
                     , new NameValuePair("DATE_RANGE_QUALIFIER_2", "C")
                     , new NameValuePair("OFFICE_ID", "PARAT08WA")
-                    , new NameValuePair("B_DATE_1", searchParam.getDepDate().replaceAll("-","")+"0000")
+                    , new NameValuePair("B_DATE_1", arg0.getDepDate().replaceAll("-", "") + "0000")
                     , new NameValuePair("COMMERCIAL_FARE_FAMILY_1", "RAMALL")
                     , new NameValuePair("PRICING_TYPE", "O")
                     , new NameValuePair("B_ANY_TIME_1", "TRUE")
@@ -128,6 +144,10 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
             return result;
         } catch (Exception e) {
             return "Exception";
+        } finally {
+            if (postMethod != null) {
+                postMethod.releaseConnection();
+            }
         }
     }
 
@@ -225,8 +245,8 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         }
     }
 
-    public static String getCity(String code){
-        String city= new InfoCenter().getCityFromAirportCode(code)+'('+code+')';
+    public static String getCity(String code) {
+        String city = new InfoCenter().getCityFromAirportCode(code) + '(' + code + ')';
         return city;
     }
 
@@ -236,7 +256,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
     }
 
     public static String getDate(String arg) {
-        String date = arg.substring(8, 10) +'/' +arg.substring(5, 7) +'/' + arg.substring(0, 4);
+        String date = arg.substring(8, 10) + '/' + arg.substring(5, 7) + '/' + arg.substring(0, 4);
         return date;
     }
 
