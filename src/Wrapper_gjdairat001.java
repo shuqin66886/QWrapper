@@ -233,7 +233,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
 
                 flightDetail.setDepdate(sdf.parse(setDate(ob.getString("b_date_date"))));
                 flightDetail.setFlightno(flightNoList);
-                flightDetail.setMonetaryunit("Euro");
+                flightDetail.setMonetaryunit("EUR");
                 flightDetail.setPrice(Double.parseDouble(priceMap.get(flightid).toString()));
                 flightDetail.setDepcity(arg1.getDep());
                 flightDetail.setArrcity(arg1.getArr());
