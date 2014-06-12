@@ -219,6 +219,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
                     flightNoList.add(flightNo);
                     seg.setFlightno(flightNo);
                     seg.setDepDate(setDate(object.getString("b_date_date")));
+                    seg.setArrDate(setDate(object.getString("e_date_date")));
                     JSONObject blocationObject = object.getJSONObject("b_location");
                     seg.setDepairport(blocationObject.getString("location_code"));
                     JSONObject elocationObject = object.getJSONObject("e_location");
