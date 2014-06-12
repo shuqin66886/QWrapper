@@ -224,8 +224,8 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
                     seg.setDepairport(blocationObject.getString("location_code"));
                     JSONObject elocationObject = object.getJSONObject("e_location");
                     seg.setArrairport(elocationObject.getString("location_code"));
-                    seg.setDeptime(object.getString("b_date_formatted_time"));
-                    seg.setArrtime(object.getString("e_date_formatted_time"));
+                    seg.setDeptime(object.getString("b_date_formatted_time").substring(0,5));
+                    seg.setArrtime(object.getString("e_date_formatted_time").substring(0,5));
                     segs.add(seg);
                 }
                 JSONObject ob = (JSONObject) segmentArray.get(0);
