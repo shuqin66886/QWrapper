@@ -278,32 +278,31 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
 
     }
 
-    public BookingResult getBookingInfo(FlightSearchParam arg0) {
-        String bookingUrlPre = "https://www.royalairmaroc.e-retail.amadeus.com/plnext/5APHOneWay/Fare.action";
+ 
+  public BookingResult getBookingInfo(FlightSearchParam arg0) {
+        String bookingUrlPre = "http://www.royalairmaroc.com/int-en";
         BookingResult bookingResult = new BookingResult();
         BookingInfo bookingInfo = new BookingInfo();
         bookingInfo.setAction(bookingUrlPre);
         bookingInfo.setMethod("post");
         Map<String, String> map = new LinkedHashMap<String, String>();
-        map.put("LANGUAGE", "US");
-        map.put("SITE", "BBDGBBDG");
-        map.put("TRIP_TYPE", "O");
-        map.put("PAGE_TICKET", "1");
-        map.put("BANNER", "");
-        map.put("SKIN", "");
-        map.put("PRICING_TYPE", "0");
-        map.put("RECOMMENDATION_ID_1", "12");
-        map.put("FLIGHT_ID_1", "0");
-        map.put("FLIGHT_ID_2", "");
-        map.put("FLIGHTOUTBOUND", "");
-        map.put("FLIGHTINBOUND", "");
-        map.put("DISPLAY_TYPE", "1");
+        map.put("language_code", "EN");
+        map.put("countryCode", "GB");
+        map.put("depart", getCity(arg0.getDep()));
+        map.put("arrivee",getCity(arg0.getArr()));
+        map.put("date_depart", getDate(arg0.getDepDate()));
+        map.put("date_arrivee", "");
+        map.put("type_classe", "RAMALL");
+        map.put("radio-type-aller", "O");
+        map.put("nbre_adulte", "1");
+        map.put("nbre_enfant", "0");
+        map.put("nbre_bebe", "0");
+        map.put("ezjscServer_function_arguments", "amadeus::getData");
+        map.put("ezxform_token", "");
         bookingInfo.setInputs(map);
         bookingResult.setData(bookingInfo);
         bookingResult.setRet(true);
         return bookingResult;
-
     }
-
 }
 
