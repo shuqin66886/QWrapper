@@ -20,10 +20,10 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
 
     public static void main(String[] args) {
         FlightSearchParam searchParam = new FlightSearchParam();
-//        searchParam.setDep("BEY");
-//        searchParam.setArr("ACC");
-        searchParam.setDep("Paris-Orly (ORY)");
-        searchParam.setArr("Accra (ACC)");
+        searchParam.setDep("BEY");
+        searchParam.setArr("ACC");
+//        searchParam.setDep("Paris-Orly (ORY)");
+//        searchParam.setArr("Accra (ACC)");
         searchParam.setDepDate("2014-07-10");
         searchParam.setTimeOut("60000");
         searchParam.setToken("");
@@ -51,10 +51,10 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
             NameValuePair[] data = {
                     new NameValuePair("language_code", "EN")
                     , new NameValuePair("countryCode", "GB")
-//                    , new NameValuePair("depart", getCity(arg0.getDep()))
-//                    , new NameValuePair("arrivee", getCity(arg0.getArr()))
-                    , new NameValuePair("depart", arg0.getDep())
-                    , new NameValuePair("arrivee", arg0.getArr())
+                    , new NameValuePair("depart", getCity(arg0.getDep()))
+                    , new NameValuePair("arrivee", getCity(arg0.getArr()))
+//                    , new NameValuePair("depart", arg0.getDep())
+//                    , new NameValuePair("arrivee", arg0.getArr())
                     , new NameValuePair("date_depart", getDate(arg0.getDepDate()))
                     , new NameValuePair("type_classe", "RAMALL")
                     , new NameValuePair("radio-type-aller", "O")
@@ -116,10 +116,10 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         postMethod.setRequestHeader("Connection", "close");
         try {
             NameValuePair[] data = {
-//                    new NameValuePair("B_LOCATION_1", arg0.getDep())
-//                    , new NameValuePair("E_LOCATION_1", arg0.getArr())
-                     new NameValuePair("B_LOCATION_1", arg0.getDep().substring(arg0.getDep().indexOf("(")+1,arg0.getDep().length()-1))
-                    , new NameValuePair("E_LOCATION_1",arg0.getArr().substring(arg0.getArr().indexOf("(")+1,arg0.getArr().length()-1))
+                    new NameValuePair("B_LOCATION_1", arg0.getDep())
+                    , new NameValuePair("E_LOCATION_1", arg0.getArr())
+//                     new NameValuePair("B_LOCATION_1", arg0.getDep().substring(arg0.getDep().indexOf("(")+1,arg0.getDep().length()-1))
+//                    , new NameValuePair("E_LOCATION_1",arg0.getArr().substring(arg0.getArr().indexOf("(")+1,arg0.getArr().length()-1))
                     , new NameValuePair("DATE_RANGE_VALUE_2", "0")
                     , new NameValuePair("AIRLINE_2_1", "AT")
                     , new NameValuePair("DATE_RANGE_VALUE_1", "0")
