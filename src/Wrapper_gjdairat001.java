@@ -224,8 +224,8 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
                     seg.setDepairport(blocationObject.getString("location_code"));
                     JSONObject elocationObject = object.getJSONObject("e_location");
                     seg.setArrairport(elocationObject.getString("location_code"));
-                    seg.setDeptime(object.getString("b_date_formatted_time").substring(0,5));
-                    seg.setArrtime(object.getString("e_date_formatted_time").substring(0,5));
+                    seg.setDeptime(setTime(object.getString("b_date_formatted_time")));
+                    seg.setArrtime(setTime(object.getString("e_date_formatted_time")));
                     segs.add(seg);
                 }
                 JSONObject ob = (JSONObject) segmentArray.get(0);
@@ -266,6 +266,16 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
     public static String getDate(String arg) {
         String date = arg.substring(8, 10) + '/' + arg.substring(5, 7) + '/' + arg.substring(0, 4);
         return date;
+    }
+
+    public String setTime(String arg) {
+        String time="";
+        if(arg.contains("PM"))
+            time=(Integer.parseInt(arg.substring(0,2))+12)+arg.substring(2,5);
+        else
+            time=arg.substring(0,5);
+        return time;
+
     }
 
     public BookingResult getBookingInfo(FlightSearchParam arg0) {
