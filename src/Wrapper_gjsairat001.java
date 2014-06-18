@@ -32,8 +32,8 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         ProcessResultInfo result = new ProcessResultInfo();
         result = new Wrapper_gjsairat001().process(html, searchParam);
         if (result.isRet() && result.getStatus().equals(Constants.SUCCESS)) {
-            List<OneWayFlightInfo> flightList = (List<OneWayFlightInfo>) result.getData();
-            for (OneWayFlightInfo in : flightList) {
+            List<RoundTripFlightInfo> flightList = (List<RoundTripFlightInfo>) result.getData();
+            for (RoundTripFlightInfo in : flightList) {
                 System.out.println("************" + in.getInfo().toString());
                 System.out.println("++++++++++++" + in.getDetail().toString());
             }
@@ -68,20 +68,20 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
             int status = httpClient.executeMethod(postMethod);
             String html = postMethod.getResponseBodyAsString();
 
-            String body = postInfo(arg0,html);       //第2次
-            return postDateInfo(arg0,body);        //第3次
+            String body = postInfo(arg0, html);       //第2次
+            return postDateInfo(arg0, body);        //第3次
         } catch (Exception e) {
             return "Exception";
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
-                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
+                ((SimpleHttpConnectionManager) httpClient.getHttpConnectionManager()).shutdown();
             }
         }
 
     }
 
-    public static String postInfo(FlightSearchParam arg0,String html) {                //第2次跳转
+    public static String postInfo(FlightSearchParam arg0, String html) {                //第2次跳转
         String url = StringUtils.substringBetween(html, "url&quot;:&quot;", "&quot;,&quot;EMBEDDED_TRANSACTION").replaceAll("\\\\", "");
         String ENC = StringUtils.substringBetween(html, "ENC&quot;:&quot;", "&quot;}");
         QFHttpClient httpClient = new QFHttpClient(arg0, false);
@@ -105,12 +105,12 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
-                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
+                ((SimpleHttpConnectionManager) httpClient.getHttpConnectionManager()).shutdown();
             }
         }
     }
 
-    public static String postDateInfo(FlightSearchParam arg0,String body) {                      //第3次跳转
+    public static String postDateInfo(FlightSearchParam arg0, String body) {                      //第3次跳转
         QFHttpClient httpClient = new QFHttpClient(arg0, false);
         String jsessionid = StringUtils.substringBetween(body, "FlexPricerAvailabilityDispatcherPui.action", "\" method=\"POST\" class=\"transparentForm\">");
         QFPostMethod postMethod = new QFPostMethod("https://www.royalairmaroc.e-retail.amadeus.com/plnext/5APHOneWay/FlexPricerAvailabilityDispatcherPui.action" + jsessionid);
@@ -158,7 +158,7 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         } finally {
             if (postMethod != null) {
                 postMethod.releaseConnection();
-                ((SimpleHttpConnectionManager)httpClient.getHttpConnectionManager()).shutdown();
+                ((SimpleHttpConnectionManager) httpClient.getHttpConnectionManager()).shutdown();
             }
         }
     }
@@ -189,28 +189,31 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
             JSONArray price = JSON.parseArray(priceStr);
             List<HashMap> priceMapList = new ArrayList<HashMap>();
             HashMap priceMap = new HashMap();
-            for (int p = 0; p < price.size(); p++) {
+            for (int p = 30; p <59; p++) {
                 JSONObject jsb = price.getJSONObject(p);
                 JSONArray pob = jsb.getJSONArray("list_bound");
-                JSONArray flight = pob.getJSONObject(0).getJSONArray("list_flight");
-                for (int f = 0; f < flight.size(); f++) {
-                    float value1 = 0;
-                    float value2 = 0;
-                    if (priceMap != null && priceMap.containsKey(flight.getJSONObject(f).getString("flight_id"))) {
-                        value1 = Float.parseFloat(priceMap.get(flight.getJSONObject(f).getString("flight_id")).toString());
-                        value2 = jsb.getFloat("price");
-                        if (value1 >= value2)
-                            priceMap.put(flight.getJSONObject(f).getString("flight_id"), jsb.getString("price"));
-                    } else
-                        priceMap.put(flight.getJSONObject(f).getString("flight_id"), jsb.getString("price"));
+                JSONArray listprice = jsb.getJSONArray("list_price");
+                for (int pb = 0; pb < pob.size(); pb++) {
+                    JSONArray flight = pob.getJSONObject(pb).getJSONArray("list_flight");
+                    for (int f = 0; f < flight.size(); f++) {
+                        float value1 = 0;
+                        float value2 = 0;
+                        if (priceMap != null && priceMap.containsKey(flight.getJSONObject(f).getString("flight_id"))) {
+                            value1 = Float.parseFloat(priceMap.get(flight.getJSONObject(f).getString("flight_id")).toString());
+                            value2 = listprice.getJSONObject(pb).getFloat("price");
+                            if (value1 >= value2)
+                                priceMap.put(flight.getJSONObject(f).getString("flight_id"), listprice.getJSONObject(pb).getString("price"));
+                        } else
+                            priceMap.put(flight.getJSONObject(f).getString("flight_id"), listprice.getJSONObject(pb).getString("price"));
+                    }
                 }
             }
 
-            List<OneWayFlightInfo> flightList = new ArrayList<OneWayFlightInfo>();                                                //获得具体航班信息
+            List<RoundTripFlightInfo> flightList = new ArrayList<RoundTripFlightInfo>();                                                //获得具体航班信息
             String jsonStr = StringUtils.substringBetween(html, "list_flight\":", "},{\"list_flight\":");
             JSONArray ajson = JSON.parseArray(jsonStr);
             for (int i = 0; i < ajson.size(); i++) {
-                OneWayFlightInfo baseFlight = new OneWayFlightInfo();
+                RoundTripFlightInfo baseFlight = new RoundTripFlightInfo();
                 List<FlightSegement> segs = new ArrayList<FlightSegement>();
                 FlightDetail flightDetail = new FlightDetail();
                 List<String> flightNoList = new ArrayList<String>();
@@ -274,11 +277,11 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
     }
 
     public String setTime(String arg) {
-        String time="";
-        if(arg.contains("PM"))
-            time=(Integer.parseInt(arg.substring(0,2))+12)+arg.substring(2,5);
+        String time = "";
+        if (arg.contains("PM"))
+            time = (Integer.parseInt(arg.substring(0, 2)) + 12) + arg.substring(2, 5);
         else
-            time=arg.substring(0,5);
+            time = arg.substring(0, 5);
         return time;
 
     }
@@ -293,7 +296,7 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         map.put("language_code", "EN");
         map.put("countryCode", "GB");
         map.put("depart", getCity(arg0.getDep()));
-        map.put("arrivee",getCity(arg0.getArr()));
+        map.put("arrivee", getCity(arg0.getArr()));
         map.put("date_depart", getDate(arg0.getDepDate()));
         map.put("date_arrivee", "");
         map.put("type_classe", "RAMALL");
