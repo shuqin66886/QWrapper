@@ -25,17 +25,21 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         searchParam.setDepDate("2014-07-10");
         searchParam.setRetDate("2014-07-15");
         searchParam.setTimeOut("60000");
+        searchParam.setWrapperid("Wrapper_gjsairat001");
         searchParam.setToken("");
 
         String html = new Wrapper_gjsairat001().getHtml(searchParam);      //得到最终结果
 
         ProcessResultInfo result = new ProcessResultInfo();
         result = new Wrapper_gjsairat001().process(html, searchParam);
+        String jieguo=JSON.toJSONString(result);
         if (result.isRet() && result.getStatus().equals(Constants.SUCCESS)) {
             List<RoundTripFlightInfo> flightList = (List<RoundTripFlightInfo>) result.getData();
             for (RoundTripFlightInfo in : flightList) {
                 System.out.println("************" + in.getInfo().toString());
                 System.out.println("++++++++++++" + in.getDetail().toString());
+                System.out.println("Return**********" + in.getRetinfo().toString());
+                System.out.println("Return++++++++++" + in.getRetflightno().toString());
             }
         } else {
             System.out.println(result.getStatus());
@@ -187,9 +191,8 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         try {
             String priceStr = StringUtils.substringBetween(html, "\"list_recommendation\":", ",\"list_date\"");      //根据flight_id计算票价
             JSONArray price = JSON.parseArray(priceStr);
-            List<HashMap> priceMapList = new ArrayList<HashMap>();
             HashMap priceMap = new HashMap();
-            for (int p = 30; p <59; p++) {
+            for (int p = 0; p <price.size(); p++) {
                 JSONObject jsb = price.getJSONObject(p);
                 JSONArray pob = jsb.getJSONArray("list_bound");
                 JSONArray listprice = jsb.getJSONArray("list_price");
@@ -213,7 +216,6 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
             String jsonStr = StringUtils.substringBetween(html, "list_flight\":", "},{\"list_flight\":");
             JSONArray ajson = JSON.parseArray(jsonStr);
             for (int i = 0; i < ajson.size(); i++) {
-                RoundTripFlightInfo baseFlight = new RoundTripFlightInfo();
                 List<FlightSegement> segs = new ArrayList<FlightSegement>();
                 FlightDetail flightDetail = new FlightDetail();
                 List<String> flightNoList = new ArrayList<String>();
@@ -238,7 +240,6 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
                 }
                 JSONObject ob = (JSONObject) segmentArray.get(0);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
                 flightDetail.setDepdate(sdf.parse(setDate(ob.getString("b_date_date"))));
                 flightDetail.setFlightno(flightNoList);
                 flightDetail.setMonetaryunit("EUR");
@@ -246,9 +247,39 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
                 flightDetail.setDepcity(arg1.getDep());
                 flightDetail.setArrcity(arg1.getArr());
                 flightDetail.setWrapperid(arg1.getWrapperid());
-                baseFlight.setDetail(flightDetail);
-                baseFlight.setInfo(segs);
-                flightList.add(baseFlight);
+
+                /* 以下是返程航段的信息*/
+                String jsonStr2 = StringUtils.substringBetween(html, "]},{\"list_flight\":", "}],\"list_recommendation\"");
+                JSONArray jsonArray = JSON.parseArray(jsonStr2);
+                for (int k = 0; k < jsonArray.size(); k++) {
+                    List<FlightSegement> retinfo = new ArrayList<FlightSegement>();
+                    List<String> retflightno = new ArrayList<String>();
+                    JSONObject json = jsonArray.getJSONObject(k);
+                    JSONArray segmentArray2 = json.getJSONArray("list_segment");
+                    for (int l = 0; l < segmentArray2.size(); l++) {
+                        FlightSegement seg = new FlightSegement();
+                        JSONObject object = (JSONObject) segmentArray2.get(l);
+                        String flightNo = "AT" + object.getString("flight_number");
+                        retflightno.add(flightNo);
+                        seg.setFlightno(flightNo);
+                        seg.setDepDate(setDate(object.getString("b_date_date")));
+                        seg.setArrDate(setDate(object.getString("e_date_date")));
+                        JSONObject blocationObject = object.getJSONObject("b_location");
+                        seg.setDepairport(blocationObject.getString("location_code"));
+                        JSONObject elocationObject = object.getJSONObject("e_location");
+                        seg.setArrairport(elocationObject.getString("location_code"));
+                        seg.setDeptime(setTime(object.getString("b_date_formatted_time")));
+                        seg.setArrtime(setTime(object.getString("e_date_formatted_time")));
+                        retinfo.add(seg);
+                    }
+                    RoundTripFlightInfo baseFlight = new RoundTripFlightInfo();
+                    baseFlight.setRetflightno(retflightno);
+                    baseFlight.setRetinfo(retinfo);
+                    baseFlight.setRetdepdate(sdf.parse(arg1.getRetDate()));
+                    baseFlight.setDetail(flightDetail);
+                    baseFlight.setInfo(segs);
+                    flightList.add(baseFlight);
+                }
             }
             result.setRet(true);
             result.setStatus(Constants.SUCCESS);
