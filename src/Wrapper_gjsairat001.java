@@ -329,9 +329,9 @@ public class Wrapper_gjsairat001 implements QunarCrawler {
         map.put("depart", getCity(arg0.getDep()));
         map.put("arrivee", getCity(arg0.getArr()));
         map.put("date_depart", getDate(arg0.getDepDate()));
-        map.put("date_arrivee", "");
+        map.put("date_arrivee", getDate(arg0.getRetDate()));
         map.put("type_classe", "RAMALL");
-        map.put("radio-type-aller", "O");
+        map.put("radio-type-aller", "R");
         map.put("nbre_adulte", "1");
         map.put("nbre_enfant", "0");
         map.put("nbre_bebe", "0");
