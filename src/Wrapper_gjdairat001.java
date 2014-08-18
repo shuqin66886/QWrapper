@@ -24,14 +24,16 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
         searchParam.setArr("ACC");
 //        searchParam.setDep("Paris-Orly (ORY)");
 //        searchParam.setArr("Accra (ACC)");
-        searchParam.setDepDate("2014-07-10");
+        searchParam.setDepDate("2014-08-25");
         searchParam.setTimeOut("60000");
+        searchParam.setWrapperid("Wrapper_gjdairat001");
         searchParam.setToken("");
 
         String html = new Wrapper_gjdairat001().getHtml(searchParam);      //得到最终结果
 
         ProcessResultInfo result = new ProcessResultInfo();
         result = new Wrapper_gjdairat001().process(html, searchParam);
+        String jieguo=JSON.toJSONString(result);
         if (result.isRet() && result.getStatus().equals(Constants.SUCCESS)) {
             List<OneWayFlightInfo> flightList = (List<OneWayFlightInfo>) result.getData();
             for (OneWayFlightInfo in : flightList) {
@@ -278,8 +280,7 @@ public class Wrapper_gjdairat001 implements QunarCrawler {
 
     }
 
- 
-  public BookingResult getBookingInfo(FlightSearchParam arg0) {
+    public BookingResult getBookingInfo(FlightSearchParam arg0) {
         String bookingUrlPre = "http://www.royalairmaroc.com/int-en";
         BookingResult bookingResult = new BookingResult();
         BookingInfo bookingInfo = new BookingInfo();
